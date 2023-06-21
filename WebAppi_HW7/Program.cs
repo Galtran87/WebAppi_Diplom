@@ -1,3 +1,8 @@
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.AspNetCore.Hosting;
+using WebAppi_Diplom;
+
 namespace WebApi_HW7
 {
     public class Program
@@ -6,15 +11,17 @@ namespace WebApi_HW7
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
+            // Реєстрація сервісів
             builder.Services.AddControllers();
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+            builder.Services.AddSingleton<TeamRepository>(); // Реєстрація TeamRepository
+            builder.Services.AddScoped<ITeamService, TeamService>(); // Реєстрація TeamService
+
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
             var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
+            // Конфігурація конвеєра HTTP-запиту
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();

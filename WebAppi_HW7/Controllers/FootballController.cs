@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
+using WebAppi_Diplom;
 
 namespace WebAppi_HW7.Controllers
 {
@@ -8,20 +8,26 @@ namespace WebAppi_HW7.Controllers
     [Route("api/[controller]")]
     public class FootballController : ControllerBase
     {
-        private static List<string> _teams = new List<string> { "Real Madrid", "Barcelona", "Atletico Madrid", "Sevilla", "Valencia" };
+        private readonly ITeamService _teamService;
+
+        public FootballController(ITeamService teamService)
+        {
+            _teamService = teamService;
+        }
 
         // ендпоїнт для отримання всіх команд
         [HttpGet]
         public ActionResult<IEnumerable<string>> GetAllTeams()
         {
-            return Ok(_teams);
+            var teams = _teamService.GetAllTeams();
+            return Ok(teams);
         }
 
         // ендпоїнт для додавання нової команди
         [HttpPost]
         public ActionResult AddTeam(string team)
         {
-            _teams.Add(team);
+            _teamService.AddTeam(team);
             return Ok();
         }
 
@@ -29,39 +35,26 @@ namespace WebAppi_HW7.Controllers
         [HttpPut("{id}")]
         public ActionResult UpdateTeam(int id, string updatedTeam)
         {
-            if (id >= 0 && id < _teams.Count)
-            {
-                _teams[id] = updatedTeam;
-                return Ok();
-            }
-            else
-            {
-                return NotFound();
-            }
+            _teamService.UpdateTeam(id, updatedTeam);
+            return Ok();
         }
 
         // ендпоїнт для видалення команди
         [HttpDelete("{id}")]
         public ActionResult DeleteTeam(int id)
         {
-            if (id >= 0 && id < _teams.Count)
-            {
-                _teams.RemoveAt(id);
-                return Ok();
-            }
-            else
-            {
-                return NotFound();
-            }
+            _teamService.DeleteTeam(id);
+            return Ok();
         }
 
         // ендпоїнт для отримання конкретної команди
         [HttpGet("{id}")]
         public ActionResult<string> GetTeam(int id)
         {
-            if (id >= 0 && id < _teams.Count)
+            var team = _teamService.GetTeam(id);
+            if (team != null)
             {
-                return Ok(_teams[id]);
+                return Ok(team);
             }
             else
             {
