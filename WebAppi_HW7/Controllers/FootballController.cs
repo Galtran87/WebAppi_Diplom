@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Mvc;
 using WebAppi_Diplom;
 
+
+
 namespace WebAppi_HW7.Controllers
 {
     [ApiController]
@@ -49,7 +51,7 @@ namespace WebAppi_HW7.Controllers
 
         // ендпоїнт для отримання конкретної команди
         [HttpGet("{id}")]
-        public ActionResult<string> GetTeam(int id)
+        public ActionResult<string> GetTeam([FromRoute] int id)
         {
             var team = _teamService.GetTeam(id);
             if (team != null)

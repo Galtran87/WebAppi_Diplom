@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Microsoft.AspNetCore.Http;
+using System.Collections.Generic;
 
 namespace WebAppi_Diplom
 {
@@ -9,5 +10,7 @@ namespace WebAppi_Diplom
         void UpdateTeam(int id, string updatedTeam);
         void DeleteTeam(int id);
         string GetTeam(int id);
+        
+
     }
 }
