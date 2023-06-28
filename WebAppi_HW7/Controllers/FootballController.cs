@@ -8,6 +8,7 @@ namespace WebAppi_HW7.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [LogFilter]
     public class FootballController : ControllerBase
     {
         private readonly ITeamService _teamService;

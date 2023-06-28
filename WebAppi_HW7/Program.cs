@@ -6,6 +6,7 @@ using WebAppi_Diplom;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Hosting;
+using System.Linq.Expressions;
 
 namespace WebApi_HW7
 {
@@ -37,10 +38,36 @@ namespace WebApi_HW7
 
             app.MapControllers();
 
+            //Make Exception Middleware
+            app.Use(async(context, next)=>
+            {
+                try
+                {
+                    //pre-action logic
+                    Console.ForegroundColor = ConsoleColor.Green;
+                    Console.WriteLine("First step(Exception Middleware)");
+
+                    await next();
+
+                    //post-action logic
+                    Console.ForegroundColor = ConsoleColor.Yellow;
+                    Console.WriteLine("Second step (Exception Middleware)");
+                }
+                catch(Exception ex)
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine(ex.Message);
+                } 
+                
+            });
+
             // Дублювання ендпоїнта з використанням Minimal API
             app.MapGet("/v2/s/{name}",
             (HttpContext requestDelegate) =>
             {
+                //EXCEPTION just for test!
+                throw new Exception("Exception for test");
+
                 var name = requestDelegate.GetRouteValue("name")!.ToString()!;
                 var service = requestDelegate.RequestServices.GetService<ITeamService>()!;
                 var teams = service.GetAllTeams();
