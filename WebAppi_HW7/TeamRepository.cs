@@ -1,51 +1,57 @@
-﻿namespace WebAppi_Diplom
+﻿using WebAppi_Diplom;
+using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
+using System.Collections.Generic;
+using WebApi_HW7;
+using Microsoft.AspNetCore.Mvc;
+
+namespace WebAppi_Diplom
 {
-    public class TeamRepository
+    public class TeamRepository : ITeamRepository
     {
-        private readonly List<string> _teams = new List<string> {
-        "Real Madrid",
-        "Barcelona",
-        "Atletico Madrid",
-        "Sevilla",
-        "Valencia"
-    };
+        private readonly FootballDbContext _dbContext;
+
+        public TeamRepository(FootballDbContext dbContext)
+        {
+            _dbContext = dbContext;
+        }
 
         public IEnumerable<string> GetAllTeams()
         {
-            return _teams;
+            return _dbContext.Teams.Select(team => team.Name).ToList();
         }
 
         public void AddTeam(string team)
         {
-            _teams.Add(team);
+            var newTeam = new Team { Name = team };
+            _dbContext.Teams.Add(newTeam);
+            _dbContext.SaveChanges();
         }
 
         public void UpdateTeam(int id, string updatedTeam)
         {
-            if (id >= 0 && id < _teams.Count)
+            var team = _dbContext.Teams.Find(id);
+            if (team != null)
             {
-                _teams[id] = updatedTeam;
+                team.Name = updatedTeam;
+                _dbContext.SaveChanges();
             }
         }
-
+        [HttpDelete]
         public void DeleteTeam(int id)
         {
-            if (id >= 0 && id < _teams.Count)
+            var team = _dbContext.Teams.Find(id);
+            if (team != null)
             {
-                _teams.RemoveAt(id);
+                _dbContext.Teams.Remove(team);
+                _dbContext.SaveChanges();
             }
         }
 
         public string GetTeam(int id)
         {
-            if (id >= 0 && id < _teams.Count)
-            {
-                return _teams[id];
-            }
-            else
-            {
-                return null;
-            }
+            var team = _dbContext.Teams.Find(id);
+            return team?.Name;
         }
     }
 }

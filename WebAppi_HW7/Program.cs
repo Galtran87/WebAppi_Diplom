@@ -1,12 +1,14 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Hosting;
-using System.Collections.Generic;
 using WebAppi_Diplom;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Hosting;
-using System.Linq.Expressions;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using System;
+using WebAppi_HW7;
 
 namespace WebApi_HW7
 {
@@ -16,15 +18,31 @@ namespace WebApi_HW7
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            // Читання конфігурації
+            var configuration = new ConfigurationBuilder()
+                .SetBasePath(AppContext.BaseDirectory)
+                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                .Build();
+
             // Реєстрація сервісів
             builder.Services.AddControllers();
-            builder.Services.AddSingleton<TeamRepository>(); // Реєстрація TeamRepository
+            builder.Services.AddScoped<TeamRepository>();
+
+            // Реєстрація FootballDbContext
+            var connectionString = configuration.GetConnectionString("DefaultConnection");
+            builder.Services.AddDbContext<FootballDbContext>(options =>
+                options.UseSqlServer(connectionString));
+
+           
+
             builder.Services.AddScoped<ITeamService, TeamService>(); // Реєстрація TeamService
 
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
             var app = builder.Build();
+
+            
 
             // Конфігурація конвеєра HTTP-запиту
             if (app.Environment.IsDevelopment())
@@ -38,45 +56,30 @@ namespace WebApi_HW7
 
             app.MapControllers();
 
-            //Make Exception Middleware
-            app.Use(async(context, next)=>
+            // Make Exception Middleware
+            app.Use(async (context, next) =>
             {
                 try
                 {
-                    //pre-action logic
+                    // pre-action logic
                     Console.ForegroundColor = ConsoleColor.Green;
-                    Console.WriteLine("First step(Exception Middleware)");
+                    Console.WriteLine("First step (Exception Middleware)");
 
                     await next();
 
-                    //post-action logic
+                    // post-action logic
                     Console.ForegroundColor = ConsoleColor.Yellow;
                     Console.WriteLine("Second step (Exception Middleware)");
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     Console.ForegroundColor = ConsoleColor.Red;
                     Console.WriteLine(ex.Message);
-                } 
-                
+                }
+
             });
 
-            // Дублювання ендпоїнта з використанням Minimal API
-            app.MapGet("/v2/s/{name}",
-            (HttpContext requestDelegate) =>
-            {
-                //EXCEPTION just for test!
-                throw new Exception("Exception for test");
-
-                var name = requestDelegate.GetRouteValue("name")!.ToString()!;
-                var service = requestDelegate.RequestServices.GetService<ITeamService>()!;
-                var teams = service.GetAllTeams();
-                if (teams == null) return Results.NoContent();
-                return Results.Ok(teams);
-            })
-            .WithName("Test")
-            .WithOpenApi();
-
+            
 
             app.Run();
         }

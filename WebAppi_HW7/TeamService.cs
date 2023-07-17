@@ -1,8 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
-
-namespace WebAppi_Diplom
+﻿namespace WebAppi_Diplom
 {
     public class TeamService : ITeamService
     {
@@ -38,5 +34,4 @@ namespace WebAppi_Diplom
             return _teamRepository.GetTeam(id);
         }
     }
-
 }
