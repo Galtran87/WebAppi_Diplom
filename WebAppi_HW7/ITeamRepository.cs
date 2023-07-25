@@ -9,6 +9,7 @@ namespace WebAppi_Diplom
         void UpdateTeam(int id, string updatedTeam);
         void DeleteTeam(int id);
         string GetTeam(int id);
+        void AddPlayerToTeam(int teamId, string playerName);
     }
 }
 

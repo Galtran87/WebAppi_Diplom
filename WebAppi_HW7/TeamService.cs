@@ -1,4 +1,8 @@
-﻿namespace WebAppi_Diplom
+﻿using Microsoft.EntityFrameworkCore;
+using WebApi_HW7;
+
+namespace WebAppi_Diplom
+    
 {
     public class TeamService : ITeamService
     {
@@ -33,5 +37,29 @@
         {
             return _teamRepository.GetTeam(id);
         }
+        public Team GetTeamWithPlayers(int id)
+        {
+            var team = _teamRepository._dbContext.Teams.Include(t => t.Players).FirstOrDefault(t => t.Id == id);
+            return team;
+        }
+        public void AddPlayerToTeam(int teamId, string playerName)
+        {
+            var team = _teamRepository._dbContext.Teams
+                .Include(t => t.Players)
+                .FirstOrDefault(t => t.Id == teamId);
+
+            if (team != null)
+            {
+                var newPlayer = new Player
+                {
+                    PlayerName = playerName,
+                    TeamNumber = teamId
+                };
+
+                team.Players.Add(newPlayer);
+                _teamRepository._dbContext.SaveChanges(); 
+            }
+        }
+
     }
 }

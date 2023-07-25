@@ -9,7 +9,7 @@ namespace WebAppi_Diplom
 {
     public class TeamRepository : ITeamRepository
     {
-        private readonly FootballDbContext _dbContext;
+        public FootballDbContext _dbContext;
 
         public TeamRepository(FootballDbContext dbContext)
         {
@@ -51,7 +51,37 @@ namespace WebAppi_Diplom
         public string GetTeam(int id)
         {
             var team = _dbContext.Teams.Find(id);
-            return team?.Name;
+            if (team != null)
+            {
+                return team.Name;
+            }
+            return null;
+        }
+
+
+        public Team GetTeamWithPlayers(int id)
+        {
+            var team = _dbContext.Teams.Include(t => t.Players).FirstOrDefault(t => t.Id == id);
+            return team;
+        }
+
+        public void AddPlayerToTeam(int teamId, string playerName)
+        {
+            var team = _dbContext.Teams
+                .Include(t => t.Players)
+                .FirstOrDefault(t => t.Id == teamId);
+
+            if (team != null)
+            {
+                var newPlayer = new Player
+                {
+                    PlayerName = playerName,
+                    TeamNumber = teamId
+                };
+
+                team.Players.Add(newPlayer);
+                _dbContext.SaveChanges();
+            }
         }
     }
 }
