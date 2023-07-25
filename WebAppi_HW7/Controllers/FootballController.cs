@@ -9,14 +9,17 @@ namespace WebAppi_HW7.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [LogFilter] //изм.3
+    //[LogFilter] //изм.3
     public class FootballController : ControllerBase
     {
         private readonly ITeamService _teamService;
 
-        public FootballController(ITeamService teamService)
+        
+
+        public FootballController(ITeamService teamService) 
         {
             _teamService = teamService;
+           
         }
 
         // ендпоїнт для отримання всіх команд

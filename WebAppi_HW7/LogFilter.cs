@@ -1,20 +1,25 @@
 ﻿using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.AspNetCore.Mvc.Routing;
+using Microsoft.Extensions.Logging;
 
 namespace WebAppi_Diplom
 {
     public class LogFilter : Attribute, IActionFilter
     {
-        public void OnActionExecuted(ActionExecutedContext context)
+        private readonly ILogger<LogFilter> _logger;
+
+        public LogFilter(ILogger<LogFilter> logger)
         {
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine($"Second step (LogFilter) {context.HttpContext.Request.Path}");
+            _logger = logger;
         }
 
-        void IActionFilter.OnActionExecuting(ActionExecutingContext context)
-        {           
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine($"First step (LogFilter) {context.HttpContext.Request.Path}");
+        public void OnActionExecuted(ActionExecutedContext context)
+        {
+            _logger.LogInformation($"Second step (LogFilter) {context.HttpContext.Request.Path}");
+        }
+
+        public void OnActionExecuting(ActionExecutingContext context)
+        {
+            _logger.LogInformation($"First step (LogFilter) {context.HttpContext.Request.Path}");
         }
     }
 }
