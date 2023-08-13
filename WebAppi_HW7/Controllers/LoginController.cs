@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;  // Додано простір імен для IConfiguration
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -13,21 +14,20 @@ namespace WebAppi_Diplom.Controllers
     public class LoginController : ControllerBase
     {
         private readonly string mySecret;
+        private readonly string myIssuer;     // Додано поле для збереження інформації з конфігурації
+        private readonly string myAudience;   // Додано поле для збереження інформації з конфігурації
+
         public LoginController(IConfiguration configuration)
         {
             mySecret = configuration.GetValue<string>("Auth:Secret")!;
+            myIssuer = configuration.GetValue<string>("Auth:Issuer")!;      // Вичитання значення myIssuer з конфігурації
+            myAudience = configuration.GetValue<string>("Auth:Audience")!;  // Вичитання значення myAudience з конфігурації
         }
-        
+
         [HttpPost]
         public string GenerateToken([FromBody] LoginModel request)
         {
-            //https://dotnetcoretutorials.com/creating-and-validating-jwt-tokens-in-asp-net-core/?expand_article=1
-
-            //var mySecret = "tralala123yljyljy";
             var mySecurityKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(mySecret));
-
-            var myIssuer = "http://mysite.com";
-            var myAudience = "http://myaudience.com";
 
             var tokenHandler = new JwtSecurityTokenHandler();
             var tokenDescriptor = new SecurityTokenDescriptor
@@ -37,9 +37,9 @@ namespace WebAppi_Diplom.Controllers
                     new Claim(ClaimTypes.NameIdentifier, request.Username),
                 }),
                 Expires = DateTime.UtcNow.AddDays(30),
-                Issuer = myIssuer,
-                Audience = myAudience,
-                
+                Issuer = myIssuer,      // Використання значення myIssuer
+                Audience = myAudience,  // Використання значення myAudience
+
                 SigningCredentials = new SigningCredentials(mySecurityKey,
                 SecurityAlgorithms.HmacSha256Signature)
             };
@@ -51,11 +51,7 @@ namespace WebAppi_Diplom.Controllers
         [HttpGet]
         public bool VerifyToken(string token)
         {
-            //var mySecret = "tralala123yljyljy";
             var mySecurityKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(mySecret));
-
-            var myIssuer = "http://mysite.com";
-            var myAudience = "http://myaudience.com";
 
             var tokenHandler = new JwtSecurityTokenHandler();
             try
@@ -65,8 +61,8 @@ namespace WebAppi_Diplom.Controllers
                     ValidateIssuerSigningKey = true,
                     ValidateIssuer = true,
                     ValidateAudience = true,
-                    ValidIssuer = myIssuer,
-                    ValidAudience = myAudience,
+                    ValidIssuer = myIssuer,      // Використання значення myIssuer
+                    ValidAudience = myAudience,  // Використання значення myAudience
                     IssuerSigningKey = mySecurityKey
                 }, out SecurityToken validatedToken);
             }
@@ -78,14 +74,9 @@ namespace WebAppi_Diplom.Controllers
         }
     }
 
-
-}
     public class LoginModel
     {
         public string Username { get; set; }
         public string Password { get; set; }
-       
-
-        
     }
-
+}
