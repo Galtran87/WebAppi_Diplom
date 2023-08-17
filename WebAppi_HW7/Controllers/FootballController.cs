@@ -2,8 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using WebAppi_Diplom;
 using WebApi_HW7;
-
-
+using Microsoft.AspNetCore.Authorization;
 
 namespace WebAppi_HW7.Controllers
 {
@@ -40,6 +39,8 @@ namespace WebAppi_HW7.Controllers
 
         // ендпоїнт для зміни команди
         [HttpPut("{id}")]
+        [Authorize("Admin")]
+        
         public ActionResult UpdateTeam(int id, string updatedTeam)
         {
             _teamService.UpdateTeam(id, updatedTeam);
@@ -48,6 +49,7 @@ namespace WebAppi_HW7.Controllers
 
         // ендпоїнт для видалення команди
         [HttpDelete("{id}")]
+        [Authorize("Admin")]
         public ActionResult DeleteTeam(int id)
         {
             _teamService.DeleteTeam(id);

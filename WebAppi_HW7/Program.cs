@@ -2,13 +2,14 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Hosting;
 using WebAppi_Diplom;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Hosting;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 using System;
 using WebAppi_HW7;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
 
 namespace WebApi_HW7
 {
@@ -24,50 +25,105 @@ namespace WebApi_HW7
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
                 .Build();
 
-            // Реєстрація сервісів
+            var mySecret = configuration.GetValue<string>("Auth:Secret");
+            var mySecurityKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(mySecret));
+
+            var myIssuer = configuration.GetValue<string>("Auth:Issuer");
+            var myAudience = configuration.GetValue<string>("Auth:Audience");
+
             builder.Services.AddControllers();
             builder.Services.AddScoped<TeamRepository>();
 
-            // Реєстрація FootballDbContext
+            builder.Services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidIssuer = myIssuer,
+                    ValidAudience = myAudience,
+                    IssuerSigningKey = mySecurityKey
+                };
+            });
+
+            builder.Services.AddAuthorization(options =>
+            {
+                options.AddPolicy("Admin", policy => policy.RequireRole("Admin"));
+                options.AddPolicy("User", policy => policy.RequireRole("User"));
+            });
+
             var connectionString = configuration.GetConnectionString("DefaultConnection");
             builder.Services.AddDbContext<FootballDbContext>(options =>
                 options.UseSqlServer(connectionString));
 
-           
-
-            builder.Services.AddScoped<ITeamService, TeamService>(); // Реєстрація TeamService
-
+            builder.Services.AddScoped<ITeamService, TeamService>();
             builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
+            builder.Services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "My API", Version = "v1" });
+
+                // Додайте цей рядок для Security Definitions
+                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {
+                    Description = "JWT Authorization header using the Bearer scheme",
+                    Type = SecuritySchemeType.Http,
+                    Scheme = "bearer"
+                });
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "Bearer"
+                            }
+                        },
+                        new string[] {}
+                    }
+                });
+            });
 
             var app = builder.Build();
 
-            
-
-            // Конфігурація конвеєра HTTP-запиту
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
-                app.UseSwaggerUI();
+                app.UseSwaggerUI(c =>
+                {
+                    c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API");
+
+                    // Додайте ці рядки для Security Definitions
+                    c.OAuthClientId("swagger");
+                    c.OAuthClientSecret("swagger_secret");
+                    c.OAuthRealm("Swagger UI");
+                    c.OAuthAppName("Swagger UI");
+                    c.OAuthUseBasicAuthenticationWithAccessCodeGrant(); // Використовуйте OAuth2 авторизацію
+                });
             }
 
             app.UseHttpsRedirection();
+            app.UseAuthentication();
             app.UseAuthorization();
-
             app.MapControllers();
 
-            // Make Exception Middleware
             app.Use(async (context, next) =>
             {
                 try
                 {
-                    // pre-action logic
                     Console.ForegroundColor = ConsoleColor.Green;
                     Console.WriteLine("First step (Exception Middleware)");
 
                     await next();
 
-                    // post-action logic
                     Console.ForegroundColor = ConsoleColor.Yellow;
                     Console.WriteLine("Second step (Exception Middleware)");
                 }
@@ -76,10 +132,7 @@ namespace WebApi_HW7
                     Console.ForegroundColor = ConsoleColor.Red;
                     Console.WriteLine(ex.Message);
                 }
-
             });
-
-            
 
             app.Run();
         }

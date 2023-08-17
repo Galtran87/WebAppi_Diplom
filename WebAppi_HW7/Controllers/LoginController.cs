@@ -1,8 +1,7 @@
-﻿using Microsoft.AspNetCore.DataProtection;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;  // Додано простір імен для IConfiguration
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -14,18 +13,18 @@ namespace WebAppi_Diplom.Controllers
     public class LoginController : ControllerBase
     {
         private readonly string mySecret;
-        private readonly string myIssuer;     // Додано поле для збереження інформації з конфігурації
-        private readonly string myAudience;   // Додано поле для збереження інформації з конфігурації
+        private readonly string issuer;
+        private readonly string audience;
 
         public LoginController(IConfiguration configuration)
         {
             mySecret = configuration.GetValue<string>("Auth:Secret")!;
-            myIssuer = configuration.GetValue<string>("Auth:Issuer")!;      // Вичитання значення myIssuer з конфігурації
-            myAudience = configuration.GetValue<string>("Auth:Audience")!;  // Вичитання значення myAudience з конфігурації
+            issuer = configuration.GetValue<string>("Auth:Issuer")!;
+            audience = configuration.GetValue<string>("Auth:Audience")!;
         }
 
         [HttpPost]
-        public string GenerateToken([FromBody] LoginModel request)
+        public ActionResult<string> GenerateToken([FromBody] LoginModel request)
         {
             var mySecurityKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(mySecret));
 
@@ -37,19 +36,20 @@ namespace WebAppi_Diplom.Controllers
                     new Claim(ClaimTypes.NameIdentifier, request.Username),
                 }),
                 Expires = DateTime.UtcNow.AddDays(30),
-                Issuer = myIssuer,      // Використання значення myIssuer
-                Audience = myAudience,  // Використання значення myAudience
+                Issuer = issuer,
+                Audience = audience,
 
-                SigningCredentials = new SigningCredentials(mySecurityKey,
-                SecurityAlgorithms.HmacSha256Signature)
+                SigningCredentials = new SigningCredentials(mySecurityKey, SecurityAlgorithms.HmacSha256Signature)
             };
 
             var token = tokenHandler.CreateToken(tokenDescriptor);
-            return tokenHandler.WriteToken(token);
+            var tokenString = tokenHandler.WriteToken(token);
+
+            return tokenString;
         }
 
         [HttpGet]
-        public bool VerifyToken(string token)
+        public ActionResult<bool> VerifyToken(string token)
         {
             var mySecurityKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(mySecret));
 
@@ -61,8 +61,8 @@ namespace WebAppi_Diplom.Controllers
                     ValidateIssuerSigningKey = true,
                     ValidateIssuer = true,
                     ValidateAudience = true,
-                    ValidIssuer = myIssuer,      // Використання значення myIssuer
-                    ValidAudience = myAudience,  // Використання значення myAudience
+                    ValidIssuer = issuer,
+                    ValidAudience = audience,
                     IssuerSigningKey = mySecurityKey
                 }, out SecurityToken validatedToken);
             }
