@@ -101,7 +101,7 @@ namespace WebApi_HW7
                 {
                     c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API");
 
-                    // Додайте ці рядки для Security Definitions
+                    
                     c.OAuthClientId("swagger");
                     c.OAuthClientSecret("swagger_secret");
                     c.OAuthRealm("Swagger UI");

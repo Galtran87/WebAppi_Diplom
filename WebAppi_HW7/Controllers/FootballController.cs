@@ -39,7 +39,7 @@ namespace WebAppi_HW7.Controllers
 
         // ендпоїнт для зміни команди
         [HttpPut("{id}")]
-        [Authorize("Admin")]
+        [Authorize(Roles = "Admin")] //тільки для адмінів
         
         public ActionResult UpdateTeam(int id, string updatedTeam)
         {
@@ -49,7 +49,7 @@ namespace WebAppi_HW7.Controllers
 
         // ендпоїнт для видалення команди
         [HttpDelete("{id}")]
-        [Authorize("Admin")]
+        [Authorize(Roles = "Admin")] //тільки для адмінів
         public ActionResult DeleteTeam(int id)
         {
             _teamService.DeleteTeam(id);
