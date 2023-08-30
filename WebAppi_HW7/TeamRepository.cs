@@ -9,6 +9,11 @@ namespace WebAppi_Diplom
 {
     public class TeamRepository : ITeamRepository
     {
+        public TeamRepository()
+        {
+            // Додав Безпараметричний конструктор бо без нього не працює тест
+        }
+        
         public FootballDbContext _dbContext;
 
         public TeamRepository(FootballDbContext dbContext)
@@ -21,7 +26,7 @@ namespace WebAppi_Diplom
             return _dbContext.Teams.Select(team => team.Name).ToList();
         }
 
-        public void AddTeam(string team)
+        public virtual void AddTeam(string team)
         {
             var newTeam = new Team { Name = team };
             _dbContext.Teams.Add(newTeam);
