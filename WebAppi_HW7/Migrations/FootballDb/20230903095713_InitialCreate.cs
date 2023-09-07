@@ -2,10 +2,10 @@
 
 #nullable disable
 
-namespace WebAppi_Diplom.Migrations
+namespace WebAppi_Diplom.Migrations.FootballDb
 {
     /// <inheritdoc />
-    public partial class Players : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

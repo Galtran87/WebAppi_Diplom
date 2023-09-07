@@ -1,15 +1,17 @@
 using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Hosting;
-using WebAppi_Diplom;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using System;
-using WebAppi_HW7;
+using WebAppi_Diplom;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
+using Microsoft.AspNetCore.Identity;
+using FluentAssertions.Common;
 
 namespace WebApi_HW7
 {
@@ -30,9 +32,22 @@ namespace WebApi_HW7
 
             var myIssuer = configuration.GetValue<string>("Auth:Issuer");
             var myAudience = configuration.GetValue<string>("Auth:Audience");
+            //
 
-            builder.Services.AddControllers();
-            builder.Services.AddScoped<TeamRepository>();
+            builder.Services.AddDbContext<FootballDbContext>(options =>
+                options.UseSqlServer(configuration.GetConnectionString("TeamsConnection")));
+            //додав базу для юзерів
+            builder.Services.AddDbContext<ApplicationDbContext>(options =>
+                options.UseSqlServer(configuration.GetConnectionString("UsersConnection")));
+
+            builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
+                .AddEntityFrameworkStores<FootballDbContext>()
+                .AddDefaultTokenProviders();
+
+            builder.Services.Configure<IdentityOptions>(options =>
+            {
+                // Налаштуйте політики пароля та блокування тут
+            });
 
             builder.Services.AddAuthentication(options =>
             {
@@ -59,10 +74,8 @@ namespace WebApi_HW7
                 options.AddPolicy("User", policy => policy.RequireRole("User"));
             });
 
-            var connectionString = configuration.GetConnectionString("DefaultConnection");
-            builder.Services.AddDbContext<FootballDbContext>(options =>
-                options.UseSqlServer(connectionString));
-
+            builder.Services.AddControllers();
+            builder.Services.AddScoped<TeamRepository>();
             builder.Services.AddScoped<ITeamService, TeamService>();
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen(c =>
@@ -101,7 +114,6 @@ namespace WebApi_HW7
                 {
                     c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API");
 
-                    
                     c.OAuthClientId("swagger");
                     c.OAuthClientSecret("swagger_secret");
                     c.OAuthRealm("Swagger UI");

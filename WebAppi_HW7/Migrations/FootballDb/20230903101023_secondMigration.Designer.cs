@@ -8,18 +8,18 @@ using WebApi_HW7;
 
 #nullable disable
 
-namespace WebAppi_Diplom.Migrations
+namespace WebAppi_Diplom.Migrations.FootballDb
 {
     [DbContext(typeof(FootballDbContext))]
-    [Migration("20230724085526_Players")]
-    partial class Players
+    [Migration("20230903101023_secondMigration")]
+    partial class secondMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "7.0.9")
+                .HasAnnotation("ProductVersion", "7.0.10")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);

@@ -10,7 +10,8 @@ namespace WebApi_HW7
     {
         
         public FootballDbContext(DbContextOptions<FootballDbContext> options) : base(options)
-            => Database.EnsureCreated();
+        { }
+          //  => Database.EnsureCreated();
         //public DbSet<Player> Players = Set<Player>();
 
         public DbSet<Team> Teams { get; set; }       
